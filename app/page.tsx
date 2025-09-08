@@ -102,6 +102,13 @@ const ChatBotDemo = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 relative size-full h-screen">
       <div className="flex flex-col h-full">
+        {/* Header Section */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Langfuse Expert Chatbot</h1>
+          <p className="text-lg text-gray-600 mb-4">A chatbot that uses Langfuse&apos;s Docs to provide insights and answers</p>
+          <div className="border-t border-gray-200"></div>
+        </div>
+
         <Conversation className="h-full">
           <ConversationContent>
             {messages.map((message) => (
