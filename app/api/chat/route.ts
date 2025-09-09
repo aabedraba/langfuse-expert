@@ -128,6 +128,22 @@ export async function handler(req: Request) {
       // End span manually after stream has finished
       trace.getActiveSpan()?.end();
     },
+    onError: async (error) => {
+      // We close the MCP client to release resources
+      await langfuseDocsMCPClient.close();
+
+      // Update the output in Langfuse for the UI to display
+      updateActiveObservation({
+        output: error,
+        level: "ERROR"
+      });
+      updateActiveTrace({
+        output: error,
+      });
+
+      // End span manually after stream has finished
+      trace.getActiveSpan()?.end();
+    },
   });
 
   // Important in serverless environments: schedule flush after request is finished
