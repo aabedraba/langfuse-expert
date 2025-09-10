@@ -29,7 +29,7 @@ npm install
 Create a `.env.local` file:
 
 ```bash
-cp .env.example .env.local
+cp env.example .env.local
 ```
 
 Add the environment variables to the `.env.local` file.
