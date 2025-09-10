@@ -1,5 +1,5 @@
 import { langfuseSpanProcessor } from "@/instrumentation";
-import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
 import { LangfuseClient } from "@langfuse/client";
 import {
   getActiveTraceId,
@@ -53,7 +53,9 @@ export async function handler(req: Request) {
   //   "reasoningEffort": "low"
   // }
   // ```
-  const prompt = await tracedGetPrompt("langfuse-expert");
+  const prompt = await tracedGetPrompt("langfuse-expert", {
+    label: process.env.NODE_ENV === "production" ? "production" : "development",
+  });
   const promptConfig = prompt.config as {
     model: string;
     reasoningSummary: "low" | "medium" | "high" | "detailed";
@@ -96,18 +98,19 @@ export async function handler(req: Request) {
   const tools = await langfuseDocsMCPClient.tools();
 
   const result = streamText({
-    model: openai(String(promptConfig.model)),
+    model: anthropic(String(promptConfig.model)),
     // This automatically exports AI SDK's traces to the OLTP provider, 
     // in this case Langfuse
     experimental_telemetry: {
       isEnabled: true,
     },
     providerOptions: {
-      openai: {
-        reasoningSummary: promptConfig.reasoningSummary,
-        textVerbosity: promptConfig.textVerbosity,
-        reasoningEffort: promptConfig.reasoningEffort,
-      },
+      anthropic: {
+        thinking: {
+          type: "enabled",
+          budgetTokens: 12000,
+        },
+      }
     },
     tools,
     messages: convertToModelMessages(messages),
@@ -129,6 +132,7 @@ export async function handler(req: Request) {
       trace.getActiveSpan()?.end();
     },
     onError: async (error) => {
+      console.error(error);
       // We close the MCP client to release resources
       await langfuseDocsMCPClient.close();
 
